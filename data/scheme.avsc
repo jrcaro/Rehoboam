@@ -1,0 +1,11 @@
+[
+{"namespace": "uma.masterbigdata",
+ "type": "record",
+ "name": "Resource",
+ "fields": [
+     {"name": "image", "type": "bytes"},
+     {"name": "camera",  "type": "string"},
+     {"name": "district",  "type": "string"}
+ ]
+}
+]
