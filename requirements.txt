@@ -1,4 +1,4 @@
-absl-py==0.10.0
+absl-py==0.8.1
 albumentations==0.4.6
 apache-beam==2.23.0
 argon2-cffi==20.1.0
@@ -134,6 +134,7 @@ scipy==1.4.1
 Send2Trash==1.5.0
 Shapely==1.7.1
 sentencepiece==0.1.91
+setuptools==41.0.0
 six==1.15.0
 tensorboard==2.3.0
 tensorboard-plugin-wit==1.7.0
