@@ -13,9 +13,10 @@ Red neuronal para detección de tráfico.
 # Requirements
 * Linux
 * Python >= 3.6
+* [Mongo Atlas Acount](https://www.mongodb.com/es)
 
 # Installation 
-This instructions has been tested for Linux. Not tested in Windows systems.
+Not tested in Windows systems.
 
 1. Clone the repository to a path of your choice.
     ```
@@ -55,13 +56,35 @@ This instructions has been tested for Linux. Not tested in Windows systems.
 9. Comeback to ```models/research/``` and run:
     ```
     cp object_detection/packages/tf2/setup.py .
-    python -m pip install .
+    python3 -m pip install .
     ```
 10. Test the installation.
     ```
-    python object_detection/builders/model_builder_tf2_test.py
+    python3 object_detection/builders/model_builder_tf2_test.py
     ```
-11. 
+11. In order to connect the Mongo database with the project, is neccesary to change a few lines of [utils.py](https://github.com/jrcaro/Rehoboam/blob/cf7810b9db2ae897bb19e6cadb6f21559aa57b64/utils.py#L40-L42). Remember to add your IP address into the MongoDB whitelist.
+    - In L40 add your user, password and name of your database.
+    - In L41 the name of your database.
+    - In L42 the name of your collection.
+12. From the root of the project, run:
+    ```
+    sudo docker-compose up
+    ```
+13. In a browser, navigate to ```localhost:9000```, click on the "Cluster" tab and "Add Cluster". Name it and paste ```zookeeper:2181``` in the field "Cluster Zookeeper Hosts". Click in save.
+14. In other terminal, initialize the Kafka consumer. Remember activate the enviroment first.
+    ```
+    python3 kafka_consumer.py
+    ```
+15. In other terminal, initialize the Dashboard and the Kafka producer. Remember activate the enviroment first.
+    ```
+    python3 dashboard.py
+    ```
+16. In a browser, navigate to ```localhost:8050``` and enjoy :)
+17. (Optional) If you try to reload the Kafka server and it crashs, execute this commnads an try it again.
+   ```
+   sudo docker-compose rm -f
+   sudo docker-compose pull
+   ``` 
 
 # Diary
 

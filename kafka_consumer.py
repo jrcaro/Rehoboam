@@ -17,7 +17,7 @@ config = {
     'input_size': 416,
     'score_thres': 0.8,
     'model': 'yolov4',
-    'weights_tf': './data/models/YOLO/yolov4_imbalanced.weights',
+    'weights_tf': 'data/models/YOLO/checkpoints/yolov4_imbalanced',
     'output_path': 'data/result.jpg',
     'iou': 0.45
 }
