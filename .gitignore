@@ -7,6 +7,7 @@ result.jpg
 data/models
 models/
 cocoapi/
+mAP/
 
 ### Python ###
 # Byte-compiled / optimized / DLL files

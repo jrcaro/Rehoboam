@@ -19,7 +19,6 @@ from tensorflow.python.saved_model import tag_constants
 import tensorflow as tf
 from core.yolov4 import YOLO, decode, filter_boxes
 import core.utils as utils
-from core.config import cfg
 
 physical_devices = tf.config.experimental.list_physical_devices('GPU')
 if len(physical_devices) > 0:

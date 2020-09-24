@@ -431,5 +431,5 @@ if __name__ == "__main__":
         threshold,
         break_val,
         break_class,
-        'balanced_distribution.png')
+        'inference_distribution.png')
     
