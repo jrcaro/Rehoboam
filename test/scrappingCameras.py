@@ -15,7 +15,7 @@ def scrapingCameras(camera_id, save_path):
     urls = ['http://ctrafico.movilidad.malaga.eu/cst_ctrafico/camara10{}.jpg'.\
             format(i if i >= 10 else '0'+str(i)) for i in camera_id]
 
-    for i in range(50):
+    for i in range(500):
         for url,cid in zip(urls, camera_id):
             response = requests.get(url, stream=True)
             if response.status_code == requests.codes.ok:
@@ -29,7 +29,7 @@ def scrapingCameras(camera_id, save_path):
 
 if __name__ == "__main__":
     #Cameras district 1 -> training
-    id_list = [12, 22, 44, 49, 76]
+    id_list = [44, 75]
 
     #path = '/home/jrcaro/rehoboam/images/training/'
     path = '/home/jrcaro/images_test/'

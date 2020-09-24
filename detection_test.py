@@ -28,7 +28,7 @@ for gpu in gpus:
 def yolo_detect(parameters, image_path):
     #Load the tf model
     saved_model_loaded = tf.saved_model.load(
-        config['weights_tf'], tags=[tag_constants.SERVING])
+        parameters['weights_tf'], tags=[tag_constants.SERVING])
     infer_yolo = saved_model_loaded.signatures['serving_default']
 
     config = ConfigProto()
@@ -65,16 +65,17 @@ def yolo_detect(parameters, image_path):
     )
 
     pred_bbox = [boxes.numpy(), scores.numpy(), classes.numpy(), valid_detections.numpy()]
-    image = utils.draw_bbox(original_image, pred_bbox)
+    image = utils.draw_bbox(img_cv2, pred_bbox)
     image = Image.fromarray(image.astype(np.uint8))
     # image.show()
     image = cv2.cvtColor(np.array(image), cv2.COLOR_BGR2RGB)
-    cv2.imwrite(parameters['output_path'], image)
+    #cv2.imwrite(parameters['output_path'], image)
 
     proto_scores = tf.make_tensor_proto(scores)
     proto_classes = tf.make_tensor_proto(classes)
+    proto_box = tf.make_tensor_proto(boxes)
     
-    return tf.make_ndarray(proto_scores), tf.make_ndarray(proto_classes)
+    return [boxes.numpy(), scores.numpy(), classes.numpy()]
 
 def tf_detect(model_path, image_path,
             path_labels='data/models/label_map.pbtxt'):
@@ -121,15 +122,43 @@ def tf_detect(model_path, image_path,
         
     return detections
 
+def extract_coor(txt_file, img_width, img_height):
+    x_rect_mid = float(txt_file[0])
+    y_rect_mid = float(txt_file[1])
+    width_rect = float(txt_file[2])
+    height_rect = float(txt_file[3])
+
+    x_min_rect = ((2 * x_rect_mid * img_width) - (width_rect * img_width)) / 2
+    x_max_rect = ((2 * x_rect_mid * img_width) + (width_rect * img_width)) / 2
+    y_min_rect = ((2 * y_rect_mid * img_height) -
+                  (height_rect * img_height)) / 2
+    y_max_rect = ((2 * y_rect_mid * img_height) +
+                  (height_rect * img_height)) / 2
+
+    return x_min_rect, x_max_rect, y_min_rect, y_max_rect
+
 if __name__ == "__main__":
     tf_models = ['data/models/SSD', 'data/models/faster_rcnn']
 
     config = {
         'weights': './data/models/YOLO/yolov4-obj_6000.weights',
         'input_size': 416,
-        'score_thres': 0.8,
+        'score_thres': 0.5,
         'model': 'yolov4',
         'weights_tf': 'data/models/YOLO/checkpoints/yolov4_balanced',
         'output_path': 'data/result.jpg',
         'iou': 0.45
     }
+
+    for p in glob.glob('*.jpg'):
+        print(p)
+        a = yolo_detect(parameters=config, image_path=p)[0][0][0]
+        print(a)
+
+        xmin = a[0]
+        ymin = a[1]
+        xmax = a[2]
+        ymax = a[3]
+        b = (float(xmin), float(xmax), float(ymin), float(ymax))
+        bb = extract_coor(b, 384,288)
+        print(bb)

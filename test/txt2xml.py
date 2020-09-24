@@ -61,9 +61,9 @@ def extract_coor(txt_file, img_width, img_height):
 
     return x_min_rect, x_max_rect, y_min_rect, y_max_rect
 
-def convert(IMG_PATH='/home/jrcaro/images/Balanced',
-            save_path='/home/jrcaro/images/Balanced',
-            txt_folder = '/home/jrcaro/images/Balanced'):
+def convert(IMG_PATH='.',
+            save_path='.',
+            txt_folder = '.'):
     
     fw = [f for f in glob.glob('*.txt')]
 
@@ -164,3 +164,7 @@ def convert(IMG_PATH='/home/jrcaro/images/Balanced',
         # print(file_output.decode('utf-8'))
         ff = open(save_path+'/%s.xml' % (img_name), 'w', encoding="utf-8")
         ff.write(file_output.decode('utf-8'))
+
+if __name__ == "__main__":
+    os.chdir('test')
+    convert()

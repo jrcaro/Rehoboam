@@ -130,16 +130,16 @@ def chart_from_folder(path_f, tags, chart_title, class_f,
             for line in txt_fh:
                 class_list.append(line[0:2].strip())
 
-    print(class_list)
+    #print(class_list)
 
     #count the number of examples by class
     temp = np.setdiff1d(class_list, [])
-    print(temp)
+    #print(temp)
     count_class = {tags[i]: class_list.count(i) for i in temp}
     
     #show bar chart
-    names = [class_f[c] for c in count_class.keys()]
-    values = list(count_class.values())
+    names = [class_f[c] for c in sorted(count_class.keys(), key=lambda x: x)]
+    values = [count_class[c] for c in sorted(count_class.keys(), key=lambda x: x)]
 
     fig = go.Figure([go.Bar(x=names, y=values, text=values, textposition='auto')])
     fig.update_layout(

@@ -81,7 +81,7 @@ def main():
 
 
 if __name__ == '__main__':
-    os.chdir('/home/jrcaro/images_test/')
+'''    os.chdir('/home/jrcaro/images_test/')
     for f in glob.glob('*.xml'):
-        os.remove(f)
-    #main()
+        os.remove(f)'''
+    main()
