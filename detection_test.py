@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 import warnings
 import glob
 import cv2
+import tqdm
 
 warnings.filterwarnings('ignore')   # Suppress Matplotlib warnings
 tf.get_logger().setLevel('ERROR')           # Suppress TensorFlow logging (2)
@@ -68,16 +69,22 @@ def yolo_detect(parameters, image_path):
     image = utils.draw_bbox(img_cv2, pred_bbox)
     image = Image.fromarray(image.astype(np.uint8))
     # image.show()
-    image = cv2.cvtColor(np.array(image), cv2.COLOR_BGR2RGB)
+    #image = cv2.cvtColor(np.array(image), cv2.COLOR_BGR2RGB)
     #cv2.imwrite(parameters['output_path'], image)
 
-    proto_scores = tf.make_tensor_proto(scores)
-    proto_classes = tf.make_tensor_proto(classes)
-    proto_box = tf.make_tensor_proto(boxes)
-    
-    return [boxes.numpy(), scores.numpy(), classes.numpy()]
+    ouput = []
+    temp = {}
+    for i in range(boxes.numpy().shape[0]):
+        if scores.numpy()[0][i] > parameters['score_thres']:
+            temp['class'] = classes.numpy()[0][i]
+            temp['score'] = scores.numpy()[0][i]
+            temp['box'] = boxes.numpy()[0][i].tolist()
+            ouput.append(temp)
 
-def tf_detect(model_path, image_path,
+    
+    return ouput
+
+def tf_detect(model_path, image_path, score_thr,
             path_labels='data/models/label_map.pbtxt'):
 
     model = model_path.split('/')[2]
@@ -114,28 +121,34 @@ def tf_detect(model_path, image_path,
           detections['detection_scores'],
           category_index,
           use_normalized_coordinates=True,
-          max_boxes_to_draw=200,
-          min_score_thresh=.80,
+          max_boxes_to_draw=100,
+          min_score_thresh=score_thr,
           agnostic_mode=False)
+    
     #res = Image.fromarray(image_np_with_detections)
-    #res.save('res.jpg')
+    #res.save('data/res.jpg')
+
+    ouput = []
+    temp = {}
+    for i in range(detections['detection_boxes'].shape[0]):
+        if detections['detection_scores'][i] > score_thr:
+            temp['class'] = detections['detection_classes'][i]
+            temp['score'] = detections['detection_scores'][i]
+            temp['box'] = tuple(detections['detection_boxes'][i].tolist())
+            ouput.append(temp)
         
-    return detections
+    return ouput
 
-def extract_coor(txt_file, img_width, img_height):
-    x_rect_mid = float(txt_file[0])
-    y_rect_mid = float(txt_file[1])
-    width_rect = float(txt_file[2])
-    height_rect = float(txt_file[3])
+def model2txt(filename, data, width, height, names):
+    with open(filename, 'w') as f:
+        for d in data:
+            left = int(d['box'][0] * height)
+            top = int(d['box'][1] * height) 
+            right = int(d['box'][2] * width)
+            bottom = int(d['box'][3] * width)
 
-    x_min_rect = ((2 * x_rect_mid * img_width) - (width_rect * img_width)) / 2
-    x_max_rect = ((2 * x_rect_mid * img_width) + (width_rect * img_width)) / 2
-    y_min_rect = ((2 * y_rect_mid * img_height) -
-                  (height_rect * img_height)) / 2
-    y_max_rect = ((2 * y_rect_mid * img_height) +
-                  (height_rect * img_height)) / 2
+            f.write("{} {} {} {} {} {}\n".format(names[int(d['class'])], d['score'], left, top, right, bottom))
 
-    return x_min_rect, x_max_rect, y_min_rect, y_max_rect
 
 if __name__ == "__main__":
     tf_models = ['data/models/SSD', 'data/models/faster_rcnn']
@@ -150,15 +163,20 @@ if __name__ == "__main__":
         'iou': 0.45
     }
 
-    for p in glob.glob('*.jpg'):
-        print(p)
-        a = yolo_detect(parameters=config, image_path=p)[0][0][0]
-        print(a)
+    path_names = 'data/models/YOLO/obj.names'
 
-        xmin = a[0]
-        ymin = a[1]
-        xmax = a[2]
-        ymax = a[3]
-        b = (float(xmin), float(xmax), float(ymin), float(ymax))
-        bb = extract_coor(b, 384,288)
-        print(bb)
+    with open(path_names) as f:
+        names_dict = {i: line.split('\n')[0] for i,line in enumerate(f)}
+
+
+    for p in glob.glob('mAP/input/images/*.jpg'):
+        width, height = Image.open(p).size
+        name = p.split('/')[-1].split('.')[0]
+
+        yolo_data = yolo_detect(parameters=config, image_path=p)
+        model2txt('/home/jrcaro/Rehoboam/mAP/input/detection-results/{}.txt'.format(name),
+                    yolo_data, width, height, names_dict)
+
+        '''tf_data = tf_detect(tf_models[0], p, config['score_thres'])
+        model2txt('tf_dr.txt', tf_data, width, height, names_dict)'''
+
