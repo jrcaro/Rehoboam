@@ -10,7 +10,7 @@ import logging
 from utils import detect, mongoConnect
 from datetime import datetime
 import numpy as np
-from utils import decode
+from utils import decode_avro
 
 config = {
     'weights': './data/models/YOLO/yolov4-obj_6000.weights',
@@ -46,7 +46,7 @@ def main():
     schema = avro.schema.Parse(open(path_avro, "r").read())
     reader = DatumReader(schema)
     consumer = KafkaConsumer('input_image', bootstrap_servers=['localhost:9094', 'localhost:9095'],
-                        group_id="rehoboam", value_deserializer=lambda m: decode(m, reader))
+                        group_id="rehoboam", value_deserializer=lambda m: decode_avro(m, reader))
 
     for msg in consumer:
         #Inicialize a dictionary with the class and the number of apperence to 0

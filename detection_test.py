@@ -69,20 +69,23 @@ def yolo_detect(parameters, image_path):
     image = utils.draw_bbox(img_cv2, pred_bbox)
     image = Image.fromarray(image.astype(np.uint8))
     # image.show()
-    #image = cv2.cvtColor(np.array(image), cv2.COLOR_BGR2RGB)
-    #cv2.imwrite(parameters['output_path'], image)
+    image = cv2.cvtColor(np.array(image), cv2.COLOR_BGR2RGB)
+    cv2.imwrite(parameters['output_path'], image)
 
-    ouput = []
-    temp = {}
-    for i in range(boxes.numpy().shape[0]):
-        if scores.numpy()[0][i] > parameters['score_thres']:
-            temp['class'] = classes.numpy()[0][i]
-            temp['score'] = scores.numpy()[0][i]
-            temp['box'] = boxes.numpy()[0][i].tolist()
-            ouput.append(temp)
+    output = []
+    prec = []
+    for d in scores.numpy()[0]:
+        if d > 0.0:
+            prec.append(d)
 
+    for i in range(len(prec)):
+        temp = {}
+        temp['class'] = int(classes.numpy()[0][i])
+        temp['score'] = scores.numpy()[0][i]
+        temp['box'] = boxes.numpy()[0][i].tolist()
+        output.append(temp)
     
-    return ouput
+    return output
 
 def tf_detect(model_path, image_path, score_thr,
             path_labels='data/models/label_map.pbtxt'):
@@ -129,8 +132,9 @@ def tf_detect(model_path, image_path, score_thr,
     #res.save('data/res.jpg')
 
     ouput = []
-    temp = {}
+    print(detections['detection_boxes'].shape)
     for i in range(detections['detection_boxes'].shape[0]):
+        temp = {}
         if detections['detection_scores'][i] > score_thr:
             temp['class'] = detections['detection_classes'][i]
             temp['score'] = detections['detection_scores'][i]
@@ -142,21 +146,21 @@ def tf_detect(model_path, image_path, score_thr,
 def model2txt(filename, data, width, height, names):
     with open(filename, 'w') as f:
         for d in data:
-            left = int(d['box'][0] * height)
-            top = int(d['box'][1] * height) 
-            right = int(d['box'][2] * width)
-            bottom = int(d['box'][3] * width)
-
-            f.write("{} {} {} {} {} {}\n".format(names[int(d['class'])], d['score'], left, top, right, bottom))
+            ymin = int(d['box'][0] * height)
+            xmin = int(d['box'][1] * height) 
+            ymax = int(d['box'][2] * width)
+            xmax = int(d['box'][3] * width)
+            #print(ymin, xmin, ymax, xmax)
+            f.write("{} {0:.4g} {} {} {} {}\n".format(names[d['class']], d['score'], ymin, xmin, ymax, xmax))
 
 
 if __name__ == "__main__":
     tf_models = ['data/models/SSD', 'data/models/faster_rcnn']
 
     config = {
-        'weights': './data/models/YOLO/yolov4-obj_6000.weights',
+        'weights': 'data/models/YOLO/yolov4_balanced.weights',
         'input_size': 416,
-        'score_thres': 0.5,
+        'score_thres': 0.1,
         'model': 'yolov4',
         'weights_tf': 'data/models/YOLO/checkpoints/yolov4_balanced',
         'output_path': 'data/result.jpg',
@@ -168,15 +172,16 @@ if __name__ == "__main__":
     with open(path_names) as f:
         names_dict = {i: line.split('\n')[0] for i,line in enumerate(f)}
 
-
-    for p in glob.glob('mAP/input/images/*.jpg'):
+    #mAP/input/images/
+    #/home/jrcaro/Rehoboam/mAP/input/detection-results/
+    for p in glob.glob('*.jpg'):
         width, height = Image.open(p).size
         name = p.split('/')[-1].split('.')[0]
 
         yolo_data = yolo_detect(parameters=config, image_path=p)
-        model2txt('/home/jrcaro/Rehoboam/mAP/input/detection-results/{}.txt'.format(name),
+        model2txt('{}.txt'.format(name),
                     yolo_data, width, height, names_dict)
 
-        '''tf_data = tf_detect(tf_models[0], p, config['score_thres'])
-        model2txt('tf_dr.txt', tf_data, width, height, names_dict)'''
+        #tf_data = tf_detect(tf_models[0], p, config['score_thres'])
+        #model2txt('tf_dr.txt', tf_data, width, height, names_dict)
 

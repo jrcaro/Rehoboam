@@ -185,7 +185,7 @@ def detect(parameters, infer_model, image):
 Kafka
 '''
 
-def encode(msg, writer):
+def encode_avro(msg, writer):
     """Function to encode bytes for the Avro serilization
 
     Args:
@@ -203,7 +203,7 @@ def encode(msg, writer):
 
     return raw_bytes
 
-def decode(msg_value, reader):
+def decode_avro(msg_value, reader):
     """Function to decode the bytes from the Avro serilization
 
     Args:
@@ -245,7 +245,7 @@ def kafkaProducer(camera_id, district_id,
 
     resource = {"image": image, "camera": str(camera_id), "district": str(district_id)}
 
-    producer = KafkaProducer(bootstrap_servers=['localhost:9094'], value_serializer=lambda m: encode(m, writer))    
+    producer = KafkaProducer(bootstrap_servers=['localhost:9094'], value_serializer=lambda m: encode_avro(m, writer))    
 
     future = producer.send(input_topic, resource)
         
