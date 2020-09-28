@@ -146,12 +146,12 @@ def tf_detect(model_path, image_path, score_thr,
 def model2txt(filename, data, width, height, names):
     with open(filename, 'w') as f:
         for d in data:
-            ymin = int(d['box'][0] * height)
-            xmin = int(d['box'][1] * height) 
-            ymax = int(d['box'][2] * width)
-            xmax = int(d['box'][3] * width)
-            #print(ymin, xmin, ymax, xmax)
-            f.write("{} {0:.4g} {} {} {} {}\n".format(names[d['class']], d['score'], ymin, xmin, ymax, xmax))
+            top = int(d['box'][0] * height)
+            left = int(d['box'][1] * width) 
+            bottom = int(d['box'][2] * height)
+            right = int(d['box'][3] * width)
+            #Test again
+            f.write("{} {0:.4g} {} {} {} {}\n".format(names[d['class']], d['score'], left, top, right, bottom))
 
 
 if __name__ == "__main__":
