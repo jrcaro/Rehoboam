@@ -69,8 +69,8 @@ def yolo_detect(parameters, image_path):
     image = utils.draw_bbox(img_cv2, pred_bbox)
     image = Image.fromarray(image.astype(np.uint8))
     # image.show()
-    image = cv2.cvtColor(np.array(image), cv2.COLOR_BGR2RGB)
-    cv2.imwrite(parameters['output_path'], image)
+    #image = cv2.cvtColor(np.array(image), cv2.COLOR_BGR2RGB)
+    #cv2.imwrite(parameters['output_path'], image)
 
     output = []
     prec = []
@@ -146,12 +146,12 @@ def tf_detect(model_path, image_path, score_thr,
 def model2txt(filename, data, width, height, names):
     with open(filename, 'w') as f:
         for d in data:
-            top = int(d['box'][0] * height)
-            left = int(d['box'][1] * width) 
-            bottom = int(d['box'][2] * height)
-            right = int(d['box'][3] * width)
-            #Test again
-            f.write("{} {0:.4g} {} {} {} {}\n".format(names[d['class']], d['score'], left, top, right, bottom))
+            ymin = int(d['box'][0] * height)
+            xmin = int(d['box'][1] * height) 
+            ymax = int(d['box'][2] * width)
+            xmax = int(d['box'][3] * width)
+            #print(ymin, xmin, ymax, xmax)
+            f.write("{} {} {} {} {} {}\n".format(names[d['class']], round(d['score'], 4), xmin, ymin, xmax, ymax))
 
 
 if __name__ == "__main__":
@@ -172,14 +172,14 @@ if __name__ == "__main__":
     with open(path_names) as f:
         names_dict = {i: line.split('\n')[0] for i,line in enumerate(f)}
 
-    #mAP/input/images/
-    #/home/jrcaro/Rehoboam/mAP/input/detection-results/
-    for p in glob.glob('*.jpg'):
+    #
+    #
+    for p in glob.glob('mAP/input/images-optional/*.jpg'):
         width, height = Image.open(p).size
         name = p.split('/')[-1].split('.')[0]
 
         yolo_data = yolo_detect(parameters=config, image_path=p)
-        model2txt('{}.txt'.format(name),
+        model2txt('/home/jrcaro/Rehoboam/mAP/input/detection-results/{}.txt'.format(name),
                     yolo_data, width, height, names_dict)
 
         #tf_data = tf_detect(tf_models[0], p, config['score_thres'])

@@ -6,7 +6,6 @@ import dash_bootstrap_components as dbc
 import pandas as pd
 import base64
 from utils import kafkaProducer, mongoConnect, hour_dict
-import glob
 from kafka.admin import KafkaAdminClient, NewTopic
 from kafka import KafkaConsumer
 import plotly.graph_objects as go
