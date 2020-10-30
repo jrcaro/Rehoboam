@@ -160,9 +160,9 @@ if __name__ == "__main__":
     config = {
         'weights': 'data/models/YOLO/yolov4_balanced.weights',
         'input_size': 416,
-        'score_thres': 0.1,
+        'score_thres': 0.8,
         'model': 'yolov4',
-        'weights_tf': 'data/models/YOLO/checkpoints/yolov4_balanced',
+        'weights_tf': 'data/models/YOLO/checkpoints/yolov4_imbalanced2',
         'output_path': 'data/result.jpg',
         'iou': 0.45
     }
