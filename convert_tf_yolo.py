@@ -8,8 +8,8 @@ from tensorflow.compat.v1 import ConfigProto
 from core.yolov4 import YOLO, decode, filter_boxes
 import core.utils as utils
 import time
-from object_detection.utils import label_map_util
-from object_detection.utils import visualization_utils as viz_utils
+#from object_detection.utils import label_map_util
+#from object_detection.utils import visualization_utils as viz_utils
 import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
@@ -132,7 +132,7 @@ def tf_detect(model_path, image_path, score_thr,
     #res.save('data/res.jpg')
 
     ouput = []
-    print(detections['detection_boxes'].shape)
+    #print(detections['detection_boxes'].shape)
     for i in range(detections['detection_boxes'].shape[0]):
         temp = {}
         if detections['detection_scores'][i] > score_thr:
@@ -146,40 +146,40 @@ def tf_detect(model_path, image_path, score_thr,
 def model2txt(filename, data, width, height, names):
     with open(filename, 'w') as f:
         for d in data:
-            ymin = int(d['box'][0] * height)
-            xmin = int(d['box'][1] * height) 
-            ymax = int(d['box'][2] * width)
-            xmax = int(d['box'][3] * width)
+            y0 = int(d['box'][0] * height)
+            x0 = int(d['box'][1] * width) 
+            y1 = int(d['box'][2] * height)
+            x1 = int(d['box'][3] * width)
             #print(ymin, xmin, ymax, xmax)
-            f.write("{} {} {} {} {} {}\n".format(names[d['class']], round(d['score'], 4), xmin, ymin, xmax, ymax))
+            f.write("{} {} {} {} {} {}\n".format(names[d['class']], round(d['score'], 4), y0, x0, y1, x1))
 
 
 if __name__ == "__main__":
     tf_models = ['data/models/SSD', 'data/models/faster_rcnn']
 
     config = {
-        'weights': 'data/models/YOLO/yolov4_balanced.weights',
         'input_size': 416,
-        'score_thres': 0.8,
+        'score_thres': 0.1,
         'model': 'yolov4',
-        'weights_tf': 'data/models/YOLO/checkpoints/yolov4_imbalanced2',
+        'weights_tf': 'data/models/YOLO/checkpoints/yolov4_imbalanced',
         'output_path': 'data/result.jpg',
         'iou': 0.45
     }
 
-    path_names = 'data/models/YOLO/obj.names'
+    path_names = 'data/models/YOLO/rehoboam.names'
 
     with open(path_names) as f:
         names_dict = {i: line.split('\n')[0] for i,line in enumerate(f)}
 
     #
     #
-    for p in glob.glob('mAP/input/images-optional/*.jpg'):
+    for p in glob.glob('/home/jrcaro/TFM/Imagenes/images_test/*.jpg'):
         width, height = Image.open(p).size
         name = p.split('/')[-1].split('.')[0]
 
+        #print(p)
         yolo_data = yolo_detect(parameters=config, image_path=p)
-        model2txt('/home/jrcaro/Rehoboam/mAP/input/detection-results/{}.txt'.format(name),
+        model2txt('/home/jrcaro/TFM/Extra/mAP/input/detection-results/{}.txt'.format(name),
                     yolo_data, width, height, names_dict)
 
         #tf_data = tf_detect(tf_models[0], p, config['score_thres'])

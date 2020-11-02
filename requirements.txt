@@ -97,7 +97,6 @@ pbr==5.4.5
 pexpect==4.8.0
 pickleshare==0.7.5
 Pillow==7.2.0
-pkg-resources==0.0.0
 plotly==4.9.0
 promise==2.3
 prometheus-client==0.8.0
