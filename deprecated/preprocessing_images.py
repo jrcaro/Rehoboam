@@ -117,7 +117,7 @@ def generate_bar_chart(count_, tags,
     fig.write_image(save_path + chart_name, width=1400, height=1000)
 
 def chart_from_folder(path_f, tags, chart_title, class_f,
-                        save_path='/home/jrcaro/Pictures/Rehoboam/', 
+                        save_path='/home/jrcaro/Desktop/', 
                         chart_name='inference_distribution.png',
                         ):
     os.chdir(path_f)
@@ -317,7 +317,7 @@ def main(lim, th, brk, brk_cl, chart_name):
     path = '/home/jrcaro/images'
     #path = '/mnt/c/Users/QH273CN/Downloads/obj'
     #path for data
-    path_data = 'data/rehoboam_data.xlsx'
+    path_data = '../data/rehoboam_data.xlsx'
 
     # Classes in the images
     tag_df = pd.read_excel(path_data, sheet_name='classes')
@@ -394,7 +394,7 @@ def main(lim, th, brk, brk_cl, chart_name):
         'sun_2': A.RandomSunFlare(src_radius=300,p=1),
     }
 
-    os.chdir('/home/jrcaro/images_test')
+    os.chdir('/home/jrcaro/TFM/Imagenes/images_test')
     '''if os.path.exists('classes.txt'):
         os.remove('classes.txt')
 
@@ -418,7 +418,7 @@ def main(lim, th, brk, brk_cl, chart_name):
 
     split_train_valid(lim, 0.2)'''
     delete_test() 
-    chart_from_folder(path_f='/home/jrcaro/images_test', tags=classes_, 
+    chart_from_folder(path_f='/home/jrcaro/TFM/Imagenes/images_test', tags=classes_, 
                     chart_title='Distribucion para inferencia', class_f=classes_tags)
 
 if __name__ == "__main__":

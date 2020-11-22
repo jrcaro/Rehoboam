@@ -58,7 +58,7 @@ def scrapingCameras(camera_id, save_path='./', save=False):
     """
 
     # Create the urls list
-    url = 'http://ctrafico.movilidad.malaga.eu/cst_ctrafico/camara10{}.jpg'.\
+    url = 'http://ctraficomovilidad.malaga.eu/cst_ctrafico/camara10{}.jpg'.\
             format(camera_id if camera_id >= 10 else '0'+str(camera_id))
 
     response = requests.get(url, stream=True)

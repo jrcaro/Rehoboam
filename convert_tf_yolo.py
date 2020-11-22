@@ -17,6 +17,7 @@ import warnings
 import glob
 import cv2
 import tqdm
+from utils import save_tf
 
 warnings.filterwarnings('ignore')   # Suppress Matplotlib warnings
 tf.get_logger().setLevel('ERROR')           # Suppress TensorFlow logging (2)
@@ -143,37 +144,42 @@ def tf_detect(model_path, image_path, score_thr,
         
     return ouput
 
-def model2txt(filename, data, width, height, names):
+def model2txt(filename, data, weight, height, names):
     with open(filename, 'w') as f:
         for d in data:
-            y0 = int(d['box'][0] * height)
-            x0 = int(d['box'][1] * width) 
-            y1 = int(d['box'][2] * height)
-            x1 = int(d['box'][3] * width)
-            #print(ymin, xmin, ymax, xmax)
-            f.write("{} {} {} {} {} {}\n".format(names[d['class']], round(d['score'], 4), y0, x0, y1, x1))
+            y0 = int(d['box'][0]*height)
+            x0 = int(d['box'][1]*weight) 
+            y1 = int(d['box'][2]*height)
+            x1 = int(d['box'][3]*weight)
+            #print(x0, y0, x1, y1)
+            #print(round(d['score'], 2))
+            f.write(str(names[d['class']]) + " " + str(round(d['score'], 2)) + \
+                " {} {} {} {}\n".format(x0, y0, x1, y1))
 
 
 if __name__ == "__main__":
     tf_models = ['data/models/SSD', 'data/models/faster_rcnn']
 
     config = {
+        'weights': 'data/models/YOLO/yolov4_balanced_2.weights',
         'input_size': 416,
         'score_thres': 0.1,
         'model': 'yolov4',
-        'weights_tf': 'data/models/YOLO/checkpoints/yolov4_imbalanced',
+        'weights_tf': 'data/models/YOLO/checkpoints/yolov4_balanced',
         'output_path': 'data/result.jpg',
         'iou': 0.45
     }
+
+    save_tf(config)
 
     path_names = 'data/models/YOLO/rehoboam.names'
 
     with open(path_names) as f:
         names_dict = {i: line.split('\n')[0] for i,line in enumerate(f)}
 
-    #
-    #
+    count = 0
     for p in glob.glob('/home/jrcaro/TFM/Imagenes/images_test/*.jpg'):
+        #print(p)
         width, height = Image.open(p).size
         name = p.split('/')[-1].split('.')[0]
 
@@ -181,7 +187,9 @@ if __name__ == "__main__":
         yolo_data = yolo_detect(parameters=config, image_path=p)
         model2txt('/home/jrcaro/TFM/Extra/mAP/input/detection-results/{}.txt'.format(name),
                     yolo_data, width, height, names_dict)
-
+        count = count + 1
+        print(count)
+        #input()
         #tf_data = tf_detect(tf_models[0], p, config['score_thres'])
         #model2txt('tf_dr.txt', tf_data, width, height, names_dict)
 
