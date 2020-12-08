@@ -16,7 +16,7 @@ def scrapingCameras(camera_id, save_path):
             format(i if i >= 10 else '0'+str(i)) for i in camera_id]
 
     for url,cid in zip(urls, camera_id):
-        for i in range(200):
+        for i in range(100):
             print('{} - {}'.format(cid, i))
             response = requests.get(url, stream=True)
             if response.status_code == requests.codes.ok:
@@ -29,7 +29,7 @@ def scrapingCameras(camera_id, save_path):
 
 if __name__ == "__main__":
     #Cameras district 1 -> training
-    id_list = [69,73,74,13,15,31,32,48,52,72,54,55,56,57,63,21,59]
+    id_list = [73,74,13,15,31,32,48,52,72,54,55,56,57,63,21,59]
 
     #3,4,29,70,25,44,11,12,22,23,46,75,80,71,76,14,34,35,49,51,58,64,67,68,69,73,74,13,15,31,32,48,52,72,54,55,56,57,63,21,59
     #path = '/home/jrcaro/rehoboam/images/training/'

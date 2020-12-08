@@ -417,7 +417,7 @@ def main(lim, th, brk, brk_cl, chart_name):
         copy(f+'.jpg', 'Balanced/{}'.format(f+'.jpg'))
 
     split_train_valid(lim, 0.2)'''
-    delete_test() 
+    #delete_test() 
     chart_from_folder(path_f='/home/jrcaro/TFM/Imagenes/images_test', tags=classes_, 
                     chart_title='Distribucion para inferencia', class_f=classes_tags)
 
@@ -431,5 +431,5 @@ if __name__ == "__main__":
         threshold,
         break_val,
         break_class,
-        'inference_distribution.png')
+        'inference_distribution_2.png')
     
