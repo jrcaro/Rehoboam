@@ -8,8 +8,8 @@ from tensorflow.compat.v1 import ConfigProto
 from core.yolov4 import YOLO, decode, filter_boxes
 import core.utils as utils
 import time
-#from object_detection.utils import label_map_util
-#from object_detection.utils import visualization_utils as viz_utils
+from object_detection.utils import label_map_util
+from object_detection.utils import visualization_utils as viz_utils
 import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
@@ -18,6 +18,9 @@ import glob
 import cv2
 import tqdm
 from utils import save_tf
+
+BOX_COLOR = (255, 0, 0) # Red
+TEXT_COLOR = (255, 255, 255) # White
 
 warnings.filterwarnings('ignore')   # Suppress Matplotlib warnings
 tf.get_logger().setLevel('ERROR')           # Suppress TensorFlow logging (2)
@@ -139,7 +142,7 @@ def tf_detect(model_path, image_path, score_thr,
         if detections['detection_scores'][i] > score_thr:
             temp['class'] = detections['detection_classes'][i]
             temp['score'] = detections['detection_scores'][i]
-            temp['box'] = tuple(detections['detection_boxes'][i].tolist())
+            temp['box'] = detections['detection_boxes'][i].tolist()
             ouput.append(temp)
         
     return ouput
@@ -156,6 +159,38 @@ def model2txt(filename, data, weight, height, names):
             f.write(str(names[d['class']]) + " " + str(round(d['score'], 2)) + \
                 " {} {} {} {}\n".format(x0, y0, x1, y1))
 
+def visualize_bbox(img, bbox, class_name, color=BOX_COLOR, thickness=2):
+    """Visualizes a single bounding box on the image"""
+    print(bbox)
+    y_min, x_min, y_max, x_max = bbox
+    x_min, x_max, y_min, y_max = int(x_min*384), int(x_max*384), int(y_min*288), int(y_max*288)
+
+    cv2.rectangle(img, (x_min, y_min), (x_max, y_max), color=color, thickness=thickness)
+
+    ((text_width, text_height), _) = cv2.getTextSize(class_name, cv2.FONT_HERSHEY_SIMPLEX, 0.35, 1)    
+    cv2.rectangle(img, (x_min, y_min - int(1.3 * text_height)), (x_min + text_width, y_min), BOX_COLOR, -1)
+    cv2.putText(
+        img,
+        text=class_name,
+        org=(x_min, y_min - int(0.3 * text_height)),
+        fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+        fontScale=0.35, 
+        color=TEXT_COLOR, 
+        lineType=cv2.LINE_AA,
+    )
+    return img
+
+
+def visualize(image, bboxes, category_ids, category_id_to_name):
+    img = image.copy()
+    for bbox, category_id in zip(bboxes, category_ids):
+        class_name = category_id_to_name[category_id]
+        img = visualize_bbox(img, bbox, class_name)
+    plt.figure(figsize=(12, 12))
+    plt.axis('off')
+    plt.imshow(img)
+    plt.show()
+
 
 if __name__ == "__main__":
     tf_models = ['data/models/SSD', 'data/models/faster_rcnn']
@@ -170,7 +205,7 @@ if __name__ == "__main__":
         'iou': 0.45
     }
 
-    save_tf(config)
+    #save_tf(config)
 
     path_names = 'data/models/YOLO/rehoboam.names'
 
@@ -182,14 +217,23 @@ if __name__ == "__main__":
         #print(p)
         width, height = Image.open(p).size
         name = p.split('/')[-1].split('.')[0]
-
+        
+        '''
         #print(p)
         yolo_data = yolo_detect(parameters=config, image_path=p)
+        print(yolo_data)
         model2txt('/home/jrcaro/TFM/Extra/mAP/input/detection-results/{}.txt'.format(name),
-                    yolo_data, width, height, names_dict)
-        count = count + 1
-        print(count)
-        #input()
-        #tf_data = tf_detect(tf_models[0], p, config['score_thres'])
-        #model2txt('tf_dr.txt', tf_data, width, height, names_dict)
+                    yolo_data, width, height, names_dict)'''
+        
+        tf_data = tf_detect(tf_models[0], p, config['score_thres'])
+        image = cv2.imread(p)
+        '''visualize(image,
+        [data['box'] for data in tf_data],
+        [data['class'] for data in tf_data],
+        names_dict)'''
+
+        model2txt('/home/jrcaro/TFM/Extra/mAP/input/detection-results/{}.txt'.format(name),
+                    tf_data, width, height, names_dict)
+
+        print()
 

@@ -222,10 +222,10 @@ def score_filename():
         
 
 if __name__ == "__main__":
-    #flip_images()
-    files_with_score = score_filename()
+    flip_images()
+    '''files_with_score = score_filename()
 
-    print(files_with_score)
+    print(files_with_score)'''
 
         
     

@@ -8,6 +8,7 @@ data/models
 models/
 cocoapi/
 mAP/
+TensorFlow/
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
