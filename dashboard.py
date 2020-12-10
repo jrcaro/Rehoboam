@@ -21,11 +21,11 @@ import time
 # ==============================================================================
 #Config parameters for yolo
 config = {
-    'weights': './data/models/YOLO/yolov4-obj_6000.weights',
+    'weights': 'data/models/YOLO/yolov4_balanced_2.weights',
     'input_size': 416,
-    'score_thres': 0.8,
+    'score_thres': 0.5,
     'model': 'yolov4',
-    'weights_tf': 'data/models/YOLO/checkpoints/yolov4_imbalanced',
+    'weights_tf': 'data/models/YOLO/checkpoints/yolov4_balanced',
     'output_path': 'data/result.jpg',
     'iou': 0.45
 }
@@ -39,7 +39,7 @@ app = dash.Dash(__name__, suppress_callback_exceptions=True,  external_styleshee
 #Path to the excel data
 path_data = 'data/rehoboam_data.xlsx'
 #Path of the classes file
-path_names = 'data/models/YOLO/obj.names'
+path_names = 'data/models/YOLO/rehoboam.names'
 #Path for about page
 path_img = 'data/IMG-20190605-WA0003.jpg'
 encoded_image_about = base64.b64encode(open(path_img, 'rb').read())
@@ -141,7 +141,7 @@ district_menu = html.Div(children=[
             title='Seleccione uno de los distritos de la ciudad de Málaga.'),
             dcc.Dropdown(
                 id='district-dropdown',
-                options=[{'label': 'Distrito {}: {}'.format(j,i), 'value': j} for i,j in
+                options=[{'label': 'Distrito {}: {}'.format(int(j),i), 'value': j} for i,j in
                             zip(
                                 cameras_df['district_name'].unique(),
                                 cameras_df.index.unique()
@@ -229,7 +229,7 @@ class_menu = html.Div(children=[
             'escoger más de una y se irán añadiendo al gráfico.'),
         dcc.Dropdown(
             id='class-dropdown',
-            value='Coche Frontal',
+            value=['coche_frontal'],
             options=[{'label': k, 'value': v} for k,v in tags.items()],
             multi=True
         )
@@ -586,8 +586,14 @@ def create_line_chart(date, hour, district_id, camera_id, class_val):
                 {'timestamp': {"$gte": date_init, "$lt": date_fin}}
         ]}, sort=[('timestamp', pymongo.ASCENDING)])
 
-        temp = {d['timestamp'].time().strftime('%H:%M:%S'): d['results'] for d in data}
+        temp = {d['timestamp'].time().strftime('%H:%M:%S'): 
+            [v for v in d['results'].values()] for d in data}
 
+        mongo_df = pd.DataFrame.from_dict(temp, orient='index',
+                    columns=sorted(names_dict.values()))
+
+        print(mongo_df) #agrupar por hora
+        
         if temp != {}:
             fig = go.Figure()
             for name in class_val:

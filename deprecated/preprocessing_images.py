@@ -118,7 +118,7 @@ def generate_bar_chart(count_, tags,
 
 def chart_from_folder(path_f, tags, chart_title, class_f,
                         save_path='/home/jrcaro/Desktop/', 
-                        chart_name='inference_distribution.png',
+                        chart_name='training_distribution.png',
                         ):
     os.chdir(path_f)
     txt_files = [f for f in glob.glob('*.txt')]
@@ -418,8 +418,8 @@ def main(lim, th, brk, brk_cl, chart_name):
 
     split_train_valid(lim, 0.2)'''
     #delete_test() 
-    chart_from_folder(path_f='/home/jrcaro/TFM/Imagenes/images_test', tags=classes_, 
-                    chart_title='Distribucion para inferencia', class_f=classes_tags)
+    chart_from_folder(path_f='/home/jrcaro/TFM/Cloud/train_yolo_uma/oversampling/test', tags=classes_, 
+                    chart_title='Training balance class distribution', class_f=classes_tags)
 
 if __name__ == "__main__":
     limit = 3000

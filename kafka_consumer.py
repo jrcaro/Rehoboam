@@ -13,18 +13,18 @@ import numpy as np
 from utils import decode_avro
 
 config = {
-    'weights': './data/models/YOLO/yolov4-obj_6000.weights',
+    'weights': 'data/models/YOLO/yolov4_balanced_2.weights',
     'input_size': 416,
-    'score_thres': 0.8,
+    'score_thres': 0.5,
     'model': 'yolov4',
-    'weights_tf': 'data/models/YOLO/checkpoints/yolov4_imbalanced',
+    'weights_tf': 'data/models/YOLO/checkpoints/yolov4_balanced',
     'output_path': 'data/result.jpg',
     'iou': 0.45
 }
 
-def main():
+def kafka_consumer():
     #Path of the classes file
-    path_names = 'data/models/YOLO/obj.names'
+    path_names = 'data/models/YOLO/rehoboam.names'
     #Path of the Avro scheme
     path_avro = "data/scheme.avsc"
 
@@ -82,4 +82,4 @@ def main():
         consumer.commit()
 
 if __name__ == "__main__":
-    main()
+    kafka_consumer()
