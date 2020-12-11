@@ -5,7 +5,7 @@ from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
 import pandas as pd
 import base64
-from utils import kafkaProducer, mongoConnect, hour_dict
+from utils import kafkaProducer, mongoConnect, hour_dict, columns2Date
 from kafka.admin import KafkaAdminClient, NewTopic
 from kafka import KafkaConsumer
 import plotly.graph_objects as go
@@ -89,11 +89,11 @@ UMA_LOGO = "https://www.uma.es/servicio-comunicacion/navegador_de_ficheros/Marca
 # make a reuseable navitem for the different examples
 nav_items = dbc.Nav(
     [
-        dbc.NavItem(dbc.NavLink("Tráfico en tiempo real", href="/real-traffic")),
-        dbc.NavItem(dbc.NavLink("Histórico", href="/data-search")),
-        dbc.NavItem(dbc.NavLink("Localización", href="/camera-location")),
+        dbc.NavItem(dbc.NavLink("Real-time traffic", href="/real-traffic")),
+        dbc.NavItem(dbc.NavLink("Data search", href="/data-search")),
+        dbc.NavItem(dbc.NavLink("Cameras location", href="/camera-location")),
         #dbc.NavItem(dbc.NavLink("Bitbucket", href="#")),
-        dbc.NavItem(dbc.NavLink("Sobre mí", href="/about"))
+        dbc.NavItem(dbc.NavLink("About me", href="/about"))
     ], 
     className="ml-auto", 
     navbar=True, 
@@ -132,16 +132,16 @@ logo = dbc.Navbar(
 district_menu = html.Div(children=[
     dbc.FormGroup(
         [
-            html.Label('Seleccione un distrito:',
+            html.Label('Select district:',
             className='mr-3',
             style={
                 'font-weight': 'bold',
                 'color': 'black'
             },
-            title='Seleccione uno de los distritos de la ciudad de Málaga.'),
+            title="Pick one of the Málaga's city district."),
             dcc.Dropdown(
                 id='district-dropdown',
-                options=[{'label': 'Distrito {}: {}'.format(int(j),i), 'value': j} for i,j in
+                options=[{'label': 'District {}: {}'.format(int(j),i), 'value': j} for i,j in
                             zip(
                                 cameras_df['district_name'].unique(),
                                 cameras_df.index.unique()
@@ -154,15 +154,15 @@ district_menu = html.Div(children=[
 #Dropdown menu for the cameras
 cameras_menu = html.Div(children=[
     dbc.FormGroup([
-        html.Label('Seleccione la camara:',
+        html.Label('Select camera ID:',
         className='mr-3',
             style={
                 'font-weight': 'bold',
                 'color': 'black'
             },
-        title='Seleccione la cámara que desea ver. En el botón\n'
-            '\"Localización\" de la barra de navegación puede ver\n'
-            'la posición de cada una de las cámaras.'),
+        title='Pick the camera ID you want to see. In the navegation\n'
+            'bar there is a \"Location\" button where you can see the\n'
+            'geographic position of all cameras.'),
         dcc.Dropdown(
             id='camera-dropdown'
         )
@@ -172,21 +172,22 @@ cameras_menu = html.Div(children=[
 #Radio items for the style of the bar chart
 bar_chart_control = html.Div(children=[
     dbc.FormGroup([
-        html.Label('Seleccione una opción:',
+        html.Label('Select option:',
         className='mr-3',
         style={
             'font-weight': 'bold',
             'color': 'black'
         },
-        title='Estas opciones representan la forma de agrupar\n'
-            'el diagrama de barras. Si se agrupan por dirección\n'
-            'se verán 16 clases, uno por cada dirección. Si se\n'
-            'agrupa por vehículo se sumaran las frecuencia de las\n'
-            'direcciones de cada tipo de vehículo.'),
+        title='This options represent the grouping method of the\n'
+            'bar chart. If you group by direction you will see all\n'
+            '16 classes, each one according to the direction of the\n'
+            'vehicles. If you group by vehicles type it will add\n'
+            'the 4 directions of each type of vehicle: bus, car, truck\n'
+            'and motrocycle'),
         dcc.RadioItems(id='radio_buttons_id',
             options=[
-                {'label': ' Mostrar por dirección', 'value': 1, 'disabled': True},
-                {'label': ' Mostrar por tipo de vehículo', 'value': 2, 'disabled': True}
+                {'label': ' Group by direction', 'value': 1, 'disabled': True},
+                {'label': ' Group by vehicle type', 'value': 2, 'disabled': True}
             ],
             value=1,
         )
@@ -196,22 +197,21 @@ bar_chart_control = html.Div(children=[
 #Date picker menu for the date to display in line chart
 date_picker_menu = html.Div(children=[
     dbc.FormGroup([
-        html.Label('Seleccione la fecha:',
+        html.Label('Select date:',
         className='mr-3',
         style={
             'font-weight': 'bold',
             'color': 'black'
         },
-        title='Fecha de la que desee extraer los datos. Sólo\n'
-            'existen datos desde el 17 de Septiembre, fecha de\n'
-            'inicio del proyecto.'),
+        title='Date of the data you want to see. European format:\n'
+                'DD/MM/YYYY'),
         html.Br(),
         dcc.DatePickerSingle(
             id='date-picker',
             min_date_allowed=datetime(2020,9,1),
             first_day_of_week=1,
             display_format='DD/MM/YYYY',
-            placeholder='Fecha'
+            placeholder='Date'
         ) ,
     ])
 ])
@@ -219,14 +219,14 @@ date_picker_menu = html.Div(children=[
 #Dropdown class selection to display in line chart
 class_menu = html.Div(children=[
     dbc.FormGroup([
-        html.Label('Seleccione las clases:',
+        html.Label('Select classes:',
         className='mr-3',
         style={
             'font-weight': 'bold',
             'color': 'black'
         },
-        title='Representan las 16 clases existentes. Es posible\n'
-            'escoger más de una y se irán añadiendo al gráfico.'),
+        title='All 16 existing classes. It is possible to\n'
+            'pick more than one class to show in the chart.'),
         dcc.Dropdown(
             id='class-dropdown',
             value=['coche_frontal'],
@@ -239,16 +239,14 @@ class_menu = html.Div(children=[
 #Slider to select the hours to display in line chart
 slider_group = html.Div(id='div-slider', children=[
     dbc.FormGroup([
-        html.Label('Seleccione un rango de horas:',
+        html.Label('Select hour range:',
         className='mr-3',
         style={
             'font-weight': 'bold',
             'color': 'black'
         },
-        title='Este selector permite filtrar la gráfica entre\n'
-            'el rango de horas que se desee. Si desea realizar\n'
-            'un zoom más específico, puede arrastrar el cursor\n'
-            'sobre la parte de la gráfica que desee.'),
+        title='Allow to filter the chart according the selected\n'
+            'hours range. It is possible to zoom in too.'),
         dcc.RangeSlider(
             id='hour-slider',
             min=0,
@@ -273,7 +271,7 @@ image_html = html.Img(
 #Layout for the real time traffic page
 layout_real_time = html.Div([
     dcc.Interval(id='interval_id', interval=5*1000),   
-    dbc.Row(html.H1("Análisis del tráfico en tiempo real".upper()),
+    dbc.Row(html.H1("Real-time traffic visualization tool".upper()),
         justify="center",
         align="center",
         className="h-50", 
@@ -292,12 +290,11 @@ layout_real_time = html.Div([
         dbc.Col(id='bar_chart', width={'size': 6}, align='center')
     ], justify="center"),
     html.P(id='placeholder'),
-    #html.Div(id="debug") #OJO
 ], className="mx-3")
 
 #Layout for the data search page
 layout_search = html.Div([
-    dbc.Row(html.H1("Histórico de los datos".upper()),
+    dbc.Row(html.H1("Data searcher".upper()),
         justify="center",
         align="center",
         className="h-50", 
@@ -321,7 +318,7 @@ layout_search = html.Div([
 
 #Layout for the cameras location page
 layout_location = html.Div([
-    dbc.Row(html.H1("Localización de las cámaras".upper()),
+    dbc.Row(html.H1("Cameras geographic location".upper()),
         justify="center",
         align="center",
         className="h-50", 
@@ -333,7 +330,7 @@ layout_location = html.Div([
 
 #Layout for the about page
 layout_about = html.Div([
-    dbc.Row(html.H1("Sobre mí".upper()),
+    dbc.Row(html.H1("About me".upper()),
         justify="center",
         align="center",
         className="h-50", 
@@ -364,7 +361,7 @@ app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
     logo,
     html.Div(id='page-content'),
-    html.Footer('Creado por Juan Rafael Caro Romero', style={
+    html.Footer('Created by Juan Rafael Caro Romero', style={
         'position': 'absolute',
         'bottom': '0',
         'width': '100%',
@@ -431,12 +428,14 @@ def update_bar_chart(n, district_id, camera_id, value):
         data = mongo_col.find_one({'$and': [{'camera_id': camera_id}, {'district_id': district_id}]}, sort=[('timestamp', pymongo.DESCENDING)])
         fig = go.Figure()
 
-        if value == 1 and data != None:  
-            #fig = go.Figure()
+        if value == 1 and data != None:
+            #Sort dictionary by Key
+            sorted_class = [v for k,v in sorted(tags.items(), key=lambda x: x[0])]
+
             fig.add_trace(go.Bar(
                 x=[i for i in sorted(tags.keys(), key=lambda x: x)],
-                y=list(data['results'].values()),
-                text=list(data['results'].values()),
+                y=[data['results'][class_] for class_ in sorted_class],
+                text=[data['results'][class_] for class_ in sorted_class],
                 textposition='auto',
                 name='Primary Product',
                 marker_color='indianred'
@@ -445,17 +444,17 @@ def update_bar_chart(n, district_id, camera_id, value):
             count = [0]*4
             for class_, num in data['results'].items():
                 if class_.find('coche') != -1:
-                    count[2] += num
-                elif class_.find('camion') != -1:
                     count[1] += num
-                elif class_.find('moto') != -1:
+                elif class_.find('camion') != -1:
                     count[3] += num
+                elif class_.find('moto') != -1:
+                    count[2] += num
                 elif class_.find('autobus') != -1:
                     count[0] += num
                 
             #fig = go.Figure()
             fig.add_trace(go.Bar(
-                x=['Autobús', 'Camión', 'Coche', 'Motocicleta'],
+                x=['Bus', 'Car', 'Motorcycle', 'Truck'],
                 y=count,
                 text=count,
                 textposition='auto',
@@ -471,7 +470,7 @@ def update_bar_chart(n, district_id, camera_id, value):
                 size=15
             ),
             yaxis=dict(
-                title='Frecuencia',
+                title='Frequency',
                 tickmode='linear',
                 tick0=0,
                 dtick=1
@@ -488,13 +487,13 @@ def update_bar_chart(n, district_id, camera_id, value):
 def enable_radio(value):
     if value != None:
         options = [
-            {'label': ' Mostrar por dirección', 'value': 1, 'disabled': False},
-            {'label': ' Mostrar por tipo de vehículo', 'value': 2, 'disabled': False}
+            {'label': ' Group by direction', 'value': 1, 'disabled': False},
+            {'label': ' Group by vehicle type', 'value': 2, 'disabled': False}
         ]
     else:
         options = [
-            {'label': ' Mostrar por dirección', 'value': 1, 'disabled': True},
-            {'label': ' Mostrar por tipo de vehículo', 'value': 2, 'disabled': True}
+            {'label': ' Group by direction', 'value': 1, 'disabled': True},
+            {'label': ' Group by vehicle type', 'value': 2, 'disabled': True}
         ]
     
     return options
@@ -589,17 +588,29 @@ def create_line_chart(date, hour, district_id, camera_id, class_val):
         temp = {d['timestamp'].time().strftime('%H:%M:%S'): 
             [v for v in d['results'].values()] for d in data}
 
+        #Group by hour
         mongo_df = pd.DataFrame.from_dict(temp, orient='index',
-                    columns=sorted(names_dict.values()))
+                    columns=sorted(names_dict.values())).reset_index()
+        mongo_df['index'] = pd.to_datetime(mongo_df['index'])
+        mongo_df = mongo_df.rename(columns={'index': "time"})
+        mongo_df['hour'] = mongo_df['time'].dt.hour
+        mongo_df['min'] = mongo_df['time'].dt.minute.astype(int)
+        mongo_df['half_hour'] = mongo_df['min'] > 30
+        mongo_df = mongo_df.drop(columns=['min'])
 
-        print(mongo_df) #agrupar por hora
+        mongo_df = mongo_df.groupby(['hour', 'half_hour']).sum().reset_index()
+        mongo_df['min'] = np.where(mongo_df['half_hour'], 30, 0)
+        mongo_df['date'] = mongo_df[['hour', 'min']].apply(columns2Date, axis=1)
+        mongo_df = mongo_df.set_index('date').drop(columns=['hour', 'half_hour', 'min'])
+
+        mongo_dict = mongo_df.to_dict()
         
         if temp != {}:
             fig = go.Figure()
             for name in class_val:
                 data_chart = hour_dict(hour[0], hour[1])
-                for k,v in temp.items():
-                    data_chart[k] = v[name]
+                for k,v in mongo_dict[name].items():
+                    data_chart[k] = v
             
                 fig.add_trace(go.Scatter(
                             x=list(data_chart.keys()),
@@ -610,8 +621,8 @@ def create_line_chart(date, hour, district_id, camera_id, class_val):
 
             fig.update_layout(
                 autosize=True,
-                xaxis_title='Hora',
-                yaxis_title='Frecuencia',
+                xaxis_title='Time (hour)',
+                yaxis_title='Frequency',
                 font=dict(
                     family=font,
                     size=15
@@ -619,7 +630,7 @@ def create_line_chart(date, hour, district_id, camera_id, class_val):
             )
             div = dcc.Graph(figure=fig)
         else:
-            div = html.P('No existen datos')
+            div = html.P('No data found')
 
         return div
 

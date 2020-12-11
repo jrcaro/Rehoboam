@@ -264,13 +264,19 @@ Others
 def hour_dict(hour1, hour2):
     """Create a dictionary for the line chart figure
 
+    Args:
+        hour1 ([int]): start hour for range
+        hour2 ([int]): end hour for range
+
     Returns:
         [dict]: Dictionary with all the seconds of a day
     """
     data_chart = {}
-    for i in range(hour1,hour2):
-        for j in range(0,60):
-            for k in range(0,60):
-                date = datetime(2020,1,1,hour=i, minute=j, second=k)
-                data_chart[date.time()] = None
+    for h in range(hour1,hour2):
+        for m in [0, 30]:
+            date = datetime(2020,1,1,hour=h, minute=m, second=0)
+            data_chart[date.time()] = 0
     return data_chart
+
+def columns2Date(x):
+    return datetime(2020,1,1,hour=x[0], minute=x[1], second=0).time()
