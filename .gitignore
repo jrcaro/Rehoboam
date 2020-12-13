@@ -2,10 +2,10 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,visualstudiocode,virtualenv,venv
 
 #### Project folders ###
-images/*.jpg
 result.jpg
 data/models
 data/YOLO/checkpoints
+deprecated/
 
 ### Python ###
 # Byte-compiled / optimized / DLL files

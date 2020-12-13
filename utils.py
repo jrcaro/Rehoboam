@@ -240,7 +240,7 @@ def kafkaProducer(camera_id, district_id,
 
     image = scrapingCameras(camera_id)
 
-    schema = avro.schema.Parse(open(path_avro, "r").read())
+    schema = avro.schema.parse(open(path_avro, "r").read())
     writer = DatumWriter(schema)
 
     resource = {"image": image, "camera": str(camera_id), "district": str(district_id)}

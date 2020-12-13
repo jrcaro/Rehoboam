@@ -13,7 +13,6 @@ import pymongo
 import numpy as np
 from datetime import datetime
 import os
-import json
 import time
 
 # ==============================================================================
@@ -31,7 +30,7 @@ app = dash.Dash(__name__, suppress_callback_exceptions=True,  external_styleshee
 #Path to the excel data
 path_data = 'data/rehoboam_data.xlsx'
 #Path of the classes file
-path_names = 'data/models/YOLO/rehoboam.names'
+path_names = 'data/YOLO/rehoboam.names'
 #Path for about page
 path_img = 'data/IMG-20190605-WA0003.jpg'
 encoded_image_about = base64.b64encode(open(path_img, 'rb').read())

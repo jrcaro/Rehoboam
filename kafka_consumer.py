@@ -25,7 +25,7 @@ config = {
 
 def kafka_consumer():
     #Path of the classes file
-    path_names = 'data/models/YOLO/rehoboam.names'
+    path_names = 'data/YOLO/rehoboam.names'
     #Path of the Avro scheme
     path_avro = "data/scheme.avsc"
 
@@ -44,7 +44,7 @@ def kafka_consumer():
     #logging.basicConfig(level=logging.INFO)
 
     #Read the Avro schema and create the Kafka consumer
-    schema = avro.schema.Parse(open(path_avro, "r").read())
+    schema = avro.schema.parse(open(path_avro, "r").read())
     reader = DatumReader(schema)
     consumer = KafkaConsumer('input_image', bootstrap_servers=['localhost:9094', 'localhost:9095'],
                         group_id="rehoboam", value_deserializer=lambda m: decode_avro(m, reader))
