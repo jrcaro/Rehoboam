@@ -19,20 +19,12 @@ import time
 # ==============================================================================
 # Initialization
 # ==============================================================================
-#Config parameters for yolo
-config = {
-    'weights': 'data/models/YOLO/yolov4_balanced_2.weights',
-    'input_size': 416,
-    'score_thres': 0.5,
-    'model': 'yolov4',
-    'weights_tf': 'data/models/YOLO/checkpoints/yolov4_balanced',
-    'output_path': 'data/result.jpg',
-    'iou': 0.45
-}
+#Output image path
+out_path = 'data/result.jpg'
 
 #Remove the result image
-if os.path.exists(config['output_path']):
-    os.remove(config['output_path'])
+if os.path.exists(out_path):
+    os.remove(out_path)
 
 #Name and inicialization of Dash app
 app = dash.Dash(__name__, suppress_callback_exceptions=True,  external_stylesheets=[dbc.themes.BOOTSTRAP])
@@ -208,7 +200,7 @@ date_picker_menu = html.Div(children=[
         html.Br(),
         dcc.DatePickerSingle(
             id='date-picker',
-            min_date_allowed=datetime(2020,9,1),
+            min_date_allowed=datetime(2020,12,1),
             first_day_of_week=1,
             display_format='DD/MM/YYYY',
             placeholder='Date'
@@ -505,8 +497,8 @@ def enable_radio(value):
     Input('interval_id', 'n_intervals')]
 )
 def load_image(value, n):
-    if value != None and os.path.exists('./' + config['output_path']):
-        encoded_image = base64.b64encode(open('./' + config['output_path'], 'rb').read())
+    if value != None and os.path.exists('./' + out_path):
+        encoded_image = base64.b64encode(open('./' + out_path, 'rb').read())
         return 'data:image/png;base64,{}'.format(encoded_image.decode())
 
 #Callback for lauch the kafka producer

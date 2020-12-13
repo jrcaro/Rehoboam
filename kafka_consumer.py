@@ -12,12 +12,13 @@ from datetime import datetime
 import numpy as np
 from utils import decode_avro
 
+#Input parameters for YOLO
 config = {
-    'weights': 'data/models/YOLO/yolov4_balanced_2.weights',
+    'weights': 'data/YOLO/yolov4_balanced_2.weights',
     'input_size': 416,
     'score_thres': 0.5,
     'model': 'yolov4',
-    'weights_tf': 'data/models/YOLO/checkpoints/yolov4_balanced',
+    'weights_tf': 'data/YOLO/checkpoints/yolov4_balanced',
     'output_path': 'data/result.jpg',
     'iou': 0.45
 }

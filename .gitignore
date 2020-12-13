@@ -5,10 +5,7 @@
 images/*.jpg
 result.jpg
 data/models
-models/
-cocoapi/
-mAP/
-TensorFlow/
+data/YOLO/checkpoints
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
