@@ -18,35 +18,37 @@ import time
 # ==============================================================================
 # Initialization
 # ==============================================================================
-#Output image path
+# Output image path
 out_path = 'data/result.jpg'
 
-#Remove the result image
+# Remove the result image
 if os.path.exists(out_path):
     os.remove(out_path)
 
-#Name and inicialization of Dash app
+# Name and inicialization of Dash app
 app = dash.Dash(__name__, suppress_callback_exceptions=True,  external_stylesheets=[dbc.themes.BOOTSTRAP])
-#Path to the excel data
+# Path to the excel data
 path_data = 'data/rehoboam_data.xlsx'
-#Path of the classes file
+# Path of the classes file
 path_names = 'data/YOLO/rehoboam.names'
-#Path for about page
+# Path for about page
 path_img = 'data/IMG-20190605-WA0003.jpg'
 encoded_image_about = base64.b64encode(open(path_img, 'rb').read())
+# Threshold variable
+threshold = 2
 
 # Classes in the images
 tag_df = pd.read_excel(path_data, sheet_name='classes')
 tags = dict(zip(tag_df.name, tag_df.tag))
 tags_rever = dict(zip(tag_df.tag, tag_df.name))
 
-#Kafka client inicialization
+# Kafka client inicialization
 admin_client = KafkaAdminClient(
     bootstrap_servers=['localhost:9094', 'localhost:9095'], 
     client_id='test'
 )
 
-#Input topic creation
+# Input topic creation
 input_topic = "input_image"
 topic_list = []
 consumer = KafkaConsumer(bootstrap_servers=['localhost:9094', 'localhost:9095'], group_id="rehoboam")
@@ -55,35 +57,35 @@ if input_topic not in consumer.topics():
     topic_list.append(NewTopic(name=input_topic, num_partitions=2, replication_factor=2))
     admin_client.create_topics(new_topics=topic_list, validate_only=False)
 
-#Font for the html style
+# Font for the html style
 font = 'Arial'
 
-#Connection to the Mongo collection to write in
+# Connection to the Mongo collection to write in
 mongo_col = mongoConnect()
 
-#Read the class file and transform in dictionary
+# Read the class file and transform in dictionary
 with open(path_names) as f:
     names_dict = {i: line.split('\n')[0] for i,line in enumerate(f)}
 
-#Read the CSV file with the data of the cameras and transform it to Pandas dataframe
+# Read the CSV file with the data of the cameras and transform it to Pandas dataframe
 cameras_df = pd.read_excel(path_data, sheet_name='cameras')
 cameras_df = cameras_df.set_index('id_district', drop=True)
 cameras_df = cameras_df[cameras_df['readable'] == 1]
 
-#Malaga's university logo
+# Malaga's university logo
 UMA_LOGO = "https://www.uma.es/servicio-comunicacion/navegador_de_ficheros/Marcas-UMA/descargar/Marca%20Universidad%20de%20M%C3%A1laga/marcauniversidaddemalagaVERTICAL.png"
 
 # ==============================================================================
 # Forms menus
 # ==============================================================================
 
-# make a reuseable navitem for the different examples
+# Make a reuseable navitem for the different examples
 nav_items = dbc.Nav(
     [
         dbc.NavItem(dbc.NavLink("Real-time traffic", href="/real-traffic")),
         dbc.NavItem(dbc.NavLink("Data search", href="/data-search")),
         dbc.NavItem(dbc.NavLink("Cameras location", href="/camera-location")),
-        #dbc.NavItem(dbc.NavLink("Bitbucket", href="#")),
+        dbc.NavItem(dbc.NavLink("GitHub", href="https://github.com/jrcaro/Rehoboam")),
         dbc.NavItem(dbc.NavLink("About me", href="/about"))
     ], 
     className="ml-auto", 
@@ -119,7 +121,7 @@ logo = dbc.Navbar(
     dark=False
 )
 
-#Dropdown menu for Malaga's district
+# Dropdown menu for Malaga's district
 district_menu = html.Div(children=[
     dbc.FormGroup(
         [
@@ -142,7 +144,7 @@ district_menu = html.Div(children=[
     )
 ])
 
-#Dropdown menu for the cameras
+# Dropdown menu for the cameras
 cameras_menu = html.Div(children=[
     dbc.FormGroup([
         html.Label('Select camera ID:',
@@ -160,7 +162,7 @@ cameras_menu = html.Div(children=[
     ])
 ])
 
-#Radio items for the style of the bar chart
+# Radio items for the style of the bar chart
 bar_chart_control = html.Div(children=[
     dbc.FormGroup([
         html.Label('Select option:',
@@ -185,6 +187,22 @@ bar_chart_control = html.Div(children=[
     ])
 ])
 
+# Modal message for the vehicles threshold
+modal = html.Div(
+    [
+        dbc.Modal(
+            [
+                dbc.ModalHeader("Threshold overcome!"),
+                dbc.ModalBody("Traffic jam may occur."),
+                dbc.ModalFooter(
+                    dbc.Button("Close", id="close", className="ml-auto")
+                ),
+            ],
+            id="modal",
+        ),
+    ]
+)
+
 #Date picker menu for the date to display in line chart
 date_picker_menu = html.Div(children=[
     dbc.FormGroup([
@@ -207,7 +225,7 @@ date_picker_menu = html.Div(children=[
     ])
 ])
 
-#Dropdown class selection to display in line chart
+# Dropdown class selection to display in line chart
 class_menu = html.Div(children=[
     dbc.FormGroup([
         html.Label('Select classes:',
@@ -227,7 +245,7 @@ class_menu = html.Div(children=[
     ])
 ])
 
-#Slider to select the hours to display in line chart
+# Slider to select the hours to display in line chart
 slider_group = html.Div(id='div-slider', children=[
     dbc.FormGroup([
         html.Label('Select hour range:',
@@ -251,7 +269,7 @@ slider_group = html.Div(id='div-slider', children=[
     ])
 ], hidden=True)
 
-#Image of the detection result
+# Image of the detection result
 image_html = html.Img(
     id='image_id',
     style={'height': '80%', 'width':'80%'})
@@ -259,7 +277,7 @@ image_html = html.Img(
 # ==============================================================================
 # Layout content
 # ==============================================================================
-#Layout for the real time traffic page
+# Layout for the real time traffic page
 layout_real_time = html.Div([
     dcc.Interval(id='interval_id', interval=5*1000),   
     dbc.Row(html.H1("Real-time traffic visualization tool".upper()),
@@ -283,7 +301,7 @@ layout_real_time = html.Div([
     html.P(id='placeholder'),
 ], className="mx-3")
 
-#Layout for the data search page
+# Layout for the data search page
 layout_search = html.Div([
     dbc.Row(html.H1("Data searcher".upper()),
         justify="center",
@@ -307,7 +325,7 @@ layout_search = html.Div([
                 spinner_style={"width": "4rem", "height": "4rem"})
 ], className="mx-3")
 
-#Layout for the cameras location page
+# Layout for the cameras location page
 layout_location = html.Div([
     dbc.Row(html.H1("Cameras geographic location".upper()),
         justify="center",
@@ -319,7 +337,7 @@ layout_location = html.Div([
     html.Iframe(id='map', srcDoc=open('data/cameras.html', 'r').read(), width='100%', height='500')
 ], className="mx-3")
 
-#Layout for the about page
+# Layout for the about page
 layout_about = html.Div([
     dbc.Row(html.H1("About me".upper()),
         justify="center",
@@ -398,7 +416,7 @@ def toggle_navbar_collapse(n, is_open):
         return not is_open
     return is_open
 
-#Callback for the addition of the camera dropdown
+# Callback for the addition of the camera dropdown
 @app.callback(
     Output('camera-dropdown', 'options'),
     [Input('district-dropdown', 'value')])
@@ -406,7 +424,7 @@ def update_output(value):
     return [{'label': k['camera_name'], 'value': k['id_camera']} for k in
                 cameras_df.loc[value][['id_camera', 'camera_name']].to_dict('records')]
 
-#Show the bar chart
+# Show the bar chart
 @app.callback(
     Output('bar_chart', 'children'),
     [Input('interval_id', 'n_intervals'),
@@ -420,7 +438,7 @@ def update_bar_chart(n, district_id, camera_id, value):
         fig = go.Figure()
 
         if value == 1 and data != None:
-            #Sort dictionary by Key
+            # Sort dictionary by Key
             sorted_class = [v for k,v in sorted(tags.items(), key=lambda x: x[0])]
 
             fig.add_trace(go.Bar(
@@ -470,7 +488,36 @@ def update_bar_chart(n, district_id, camera_id, value):
 
         return dcc.Graph(figure=fig)
 
-#Enable the radio items for the bar chart
+#Threshold calculation
+@app.callback(
+    Output("modal", "is_open"),
+    [Input('interval_id', 'n_intervals'),
+    Input('district-dropdown', 'value'),
+    Input('camera-dropdown', 'value'), 
+    Input("close", "n_clicks")],
+    [State("modal", "is_open")],
+)
+def toggle_modal(n, district_id, camera_id, is_open):
+    if district_id != None and camera_id!= None:
+        data = mongo_col.find_one({'$and': [{'camera_id': camera_id}, {'district_id': district_id}]}, sort=[('timestamp', pymongo.DESCENDING)])
+        count = [0]*4
+        for class_, num in data['results'].items():
+            if class_.find('frontal') != -1:
+                count[0] += num
+            elif class_.find('lateral_d') != -1:
+                count[1] += num
+            elif class_.find('lateral_i') != -1:
+                count[2] += num
+            elif class_.find('trasero') != -1:
+                count[3] += num
+        #print(vehicles_sum)
+
+        if any(count) >= threshold:
+            return is_open
+        else:
+            return not is_open
+
+# Enable the radio items for the bar chart
 @app.callback(
     Output('radio_buttons_id', 'options'),
     [Input('camera-dropdown', 'value')]
@@ -489,7 +536,7 @@ def enable_radio(value):
     
     return options
 
-#Callback for the image load
+# Callback for the image load
 @app.callback(
     Output('image_id', 'src'),
     [Input('camera-dropdown', 'value'),
@@ -500,7 +547,7 @@ def load_image(value, n):
         encoded_image = base64.b64encode(open('./' + out_path, 'rb').read())
         return 'data:image/png;base64,{}'.format(encoded_image.decode())
 
-#Callback for lauch the kafka producer
+# Callback for lauch the kafka producer
 @app.callback(
     Output('placeholder', 'children'),
     [Input('camera-dropdown', 'value'),
@@ -511,7 +558,7 @@ def init_producer(value_cam, value_dist, n):
     if value_cam != None and value_dist != None:
         kafkaProducer(camera_id=value_cam, district_id=value_dist)
 
-#Create the date picker from the last data available
+# Create the date picker from the last data available
 @app.callback(
     Output('date-picker', 'max_date_allowed'),
     [Input('district-dropdown', 'value'),
@@ -528,7 +575,7 @@ def search_data(district_id, camera_id):
             max_date = datetime(2020,8,31)
         return max_date
 
-#Enable the date picker when the camera menus have been selected
+# Enable the date picker when the camera menus have been selected
 @app.callback(
     Output('date-picker', 'disabled'),
     [Input('district-dropdown', 'value'),
@@ -554,7 +601,7 @@ def enabled_slider(date, district_id, camera_id, class_val):
     else:
         return True
 
-#Create the line chart of the camara selected and class(es)
+# Create the line chart of the camara selected and class(es)
 @app.callback(
     Output('line-chart', 'children'),
     [Input('date-picker', 'date'),
