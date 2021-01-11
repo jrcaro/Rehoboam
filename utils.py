@@ -46,11 +46,12 @@ def mongoConnect():
 Scrapping camera function
 '''
 
-def scrapingCameras(camera_id, save_path='./', save=False):
-    """Download the image from a url created by the camera ide and save it
+def scrapingCameras(camera_id, url_type=0, save_path='./', save=False):
+    """Download the image from a url created by the camera ID and save it
 
     Args:
-        camera_id ([int]): camera ids to download
+        camera_id ([int]): camera IDs to download
+        url_type ([int], optional): select the URL to download the image. Defaults 0 
         save_path ([str], optional): path where save the image. Defaults './'
         save ([boolean], optional): flag to save the image. Defaults False
     Returns:
@@ -58,7 +59,11 @@ def scrapingCameras(camera_id, save_path='./', save=False):
     """
 
     # Create the urls list
-    url = 'http://ctraficomovilidad.malaga.eu/cst_ctrafico/camara10{}.jpg'.\
+    if url_type == 0:
+        url = 'http://ctraficomovilidad.malaga.eu/cst_ctrafico/camara10{}.jpg'.\
+            format(camera_id if camera_id >= 10 else '0'+str(camera_id))
+    else:
+        url = 'https://www.malaga.eu/recursos/movilidad/camaras_trafico/TV-{}.jpg'.\
             format(camera_id if camera_id >= 10 else '0'+str(camera_id))
 
     response = requests.get(url, stream=True)

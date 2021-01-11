@@ -1,6 +1,3 @@
-# Alert
-## Due to some changes in the cameras URL (10 January 2021) the project doesnt't work.
-
 # Rehoboam
 
 The goal of this work is to create a dashboard through you can observed a selected camera traffic of Málaga in real time and count the number of vehicles in each direction in order to alert before the congestion occur.
@@ -12,8 +9,6 @@ This work has been carried out with the [AlexeyAB Darknet Repository](https://gi
 
 # Table of contents
 
-- [Alert](#alert)
-  - [Due to some changes in the cameras URL (10 January 2021) the project doesnt't work.](#due-to-some-changes-in-the-cameras-url-10-january-2021-the-project-doesntt-work)
 - [Rehoboam](#rehoboam)
 - [Acknowledgement](#acknowledgement)
 - [Table of contents](#table-of-contents)
