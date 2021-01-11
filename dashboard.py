@@ -171,12 +171,12 @@ bar_chart_control = html.Div(children=[
             'font-weight': 'bold',
             'color': 'black'
         },
-        title='This options represent the grouping method of the\n'
-            'bar chart. If you group by direction you will see all\n'
+        title='These options represent the grouping method of the\n'
+            'bar chart. If you group by the direction you will see all\n'
             '16 classes, each one according to the direction of the\n'
             'vehicles. If you group by vehicles type it will add\n'
             'the 4 directions of each type of vehicle: bus, car, truck\n'
-            'and motrocycle'),
+            'and motorcycle.'),
         dcc.RadioItems(id='radio_buttons_id',
             options=[
                 {'label': ' Group by direction', 'value': 1, 'disabled': True},
@@ -193,7 +193,7 @@ modal = html.Div(
         dbc.Modal(
             [
                 dbc.ModalHeader("Threshold overcome!"),
-                dbc.ModalBody("Traffic jam may occur."),
+                dbc.ModalBody("Traffic congestion may occur."),
                 dbc.ModalFooter(
                     dbc.Button("Close", id="close", className="ml-auto")
                 ),
@@ -254,7 +254,7 @@ slider_group = html.Div(id='div-slider', children=[
             'font-weight': 'bold',
             'color': 'black'
         },
-        title='Allow to filter the chart according the selected\n'
+        title='Allow filtering the chart according to the selected\n'
             'hours range. It is possible to zoom in too.'),
         dcc.RangeSlider(
             id='hour-slider',
@@ -279,7 +279,8 @@ image_html = html.Img(
 # ==============================================================================
 # Layout for the real time traffic page
 layout_real_time = html.Div([
-    dcc.Interval(id='interval_id', interval=5*1000),   
+    dcc.Interval(id='interval_id', interval=5*1000),
+    modal,
     dbc.Row(html.H1("Real-time traffic visualization tool".upper()),
         justify="center",
         align="center",
@@ -488,17 +489,17 @@ def update_bar_chart(n, district_id, camera_id, value):
 
         return dcc.Graph(figure=fig)
 
-#Threshold calculation
+# Traffic congestion message
 @app.callback(
     Output("modal", "is_open"),
     [Input('interval_id', 'n_intervals'),
     Input('district-dropdown', 'value'),
     Input('camera-dropdown', 'value'), 
     Input("close", "n_clicks")],
-    [State("modal", "is_open")],
+    [State("modal", "is_open")]
 )
-def toggle_modal(n, district_id, camera_id, is_open):
-    if district_id != None and camera_id!= None:
+def toggle_modal(n, district_id, camera_id, clicks, is_open):
+    if district_id != None and camera_id != None or clicks:
         data = mongo_col.find_one({'$and': [{'camera_id': camera_id}, {'district_id': district_id}]}, sort=[('timestamp', pymongo.DESCENDING)])
         count = [0]*4
         for class_, num in data['results'].items():
@@ -510,12 +511,11 @@ def toggle_modal(n, district_id, camera_id, is_open):
                 count[2] += num
             elif class_.find('trasero') != -1:
                 count[3] += num
-        #print(vehicles_sum)
 
-        if any(count) >= threshold:
-            return is_open
-        else:
+        if any(x >= threshold for x in count):
             return not is_open
+    else:
+        return is_open
 
 # Enable the radio items for the bar chart
 @app.callback(
