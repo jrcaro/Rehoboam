@@ -45,7 +45,7 @@ Not tested in Windows systems.
     - In L41 the name of your database.
     - In L42 the name of your collection.
 
-7. (Optional) In ```dashboard.py``` [L39](https://github.com/jrcaro/Rehoboam/blob/1c76eb2e70d3e77f848c76f1ad6b68bdfc35ff43/dashboard.py#L39) and [L40](https://github.com/jrcaro/Rehoboam/blob/1c76eb2e70d3e77f848c76f1ad6b68bdfc35ff43/dashboard.py#L40) is possible to modify the threshold number of vehicles in the same direction and span for traffic congestion message.   
+7. (Optional) In ```dashboard.py``` [L39 and L40](https://github.com/jrcaro/Rehoboam/blob/aa0c21da85c4e8844d58fbfb9fef311bfbcb836d/dashboard.py#L39-L40) is possible to modify the threshold number of vehicles in the same direction and span for traffic congestion message.   
 8. From the root of the project, run:
     ```
     sudo docker-compose up
