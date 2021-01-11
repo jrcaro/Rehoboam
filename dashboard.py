@@ -12,6 +12,7 @@ import plotly.graph_objects as go
 import pymongo
 import numpy as np
 from datetime import datetime
+from datetime import timedelta
 import os
 import time
 
@@ -34,8 +35,9 @@ path_names = 'data/YOLO/rehoboam.names'
 # Path for about page
 path_img = 'data/IMG-20190605-WA0003.jpg'
 encoded_image_about = base64.b64encode(open(path_img, 'rb').read())
-# Threshold variable
-threshold = 2
+# Threshold variables: number of vehicles and time interval (5*thr_interval)
+thr_vehicles = 5
+thr_interval = 6 # 30 seconds
 
 # Classes in the images
 tag_df = pd.read_excel(path_data, sheet_name='classes')
@@ -500,8 +502,18 @@ def update_bar_chart(n, district_id, camera_id, value):
 )
 def toggle_modal(n, district_id, camera_id, clicks, is_open):
     if district_id != None and camera_id != None or clicks:
-        data = mongo_col.find_one({'$and': [{'camera_id': camera_id}, {'district_id': district_id}]}, sort=[('timestamp', pymongo.DESCENDING)])
+        actual_time = datetime.now()
+        actual_time = actual_time + timedelta(seconds=5*thr_interval)
+
         count = [0]*4
+
+        data = mongo_col.find({
+            '$and': [
+                {'camera_id': camera_id},
+                {'district_id': district_id},
+                {'timestamp': {"$gte": actual_time, "$lt": actual_time}}
+        ]}, sort=[('timestamp', pymongo.ASCENDING)])
+
         for class_, num in data['results'].items():
             if class_.find('frontal') != -1:
                 count[0] += num
