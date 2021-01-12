@@ -503,28 +503,31 @@ def update_bar_chart(n, district_id, camera_id, value):
 def toggle_modal(n, district_id, camera_id, clicks, is_open):
     if district_id != None and camera_id != None or clicks:
         actual_time = datetime.now()
-        actual_time = actual_time + timedelta(seconds=5*thr_interval)
+        interval_time = actual_time - timedelta(seconds=5*thr_interval)
 
-        count = [0]*4
+        count = np.zeros((4,thr_interval))
 
         data = mongo_col.find({
             '$and': [
                 {'camera_id': camera_id},
                 {'district_id': district_id},
-                {'timestamp': {"$gte": actual_time, "$lt": actual_time}}
+                {'timestamp': {"$gte": interval_time, "$lt": actual_time}}
         ]}, sort=[('timestamp', pymongo.ASCENDING)])
 
-        for class_, num in data['results'].items():
-            if class_.find('frontal') != -1:
-                count[0] += num
-            elif class_.find('lateral_d') != -1:
-                count[1] += num
-            elif class_.find('lateral_i') != -1:
-                count[2] += num
-            elif class_.find('trasero') != -1:
-                count[3] += num
+        for i,d in enumerate(data):
+            for class_, num in d['results'].items():
+                if class_.find('frontal') != -1:
+                    count[0][i] += num
+                elif class_.find('lateral_d') != -1:
+                    count[1][i] += num
+                elif class_.find('lateral_i') != -1:
+                    count[2][i] += num
+                elif class_.find('trasero') != -1:
+                    count[3][i] += num
+        
+        congestion = count >= thr_vehicles
 
-        if any(x >= threshold for x in count):
+        if any(all(jam) for jam in congestion):
             return not is_open
     else:
         return is_open
