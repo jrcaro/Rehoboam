@@ -7,6 +7,10 @@ Thanks to these 16 classes the system will be able to count the number of vehicl
 # Acknowledgement
 This work has been carried out with the [AlexeyAB Darknet Repository](https://github.com/AlexeyAB/darknet) and the [hunglc007 tensorflow-yolov4-tflite Repository](https://github.com/hunglc007/tensorflow-yolov4-tflite).
 
+In the next links you can found the image dataset used in the training (balance and imbalance) and testing process:
+    - [Training](https://drive.google.com/file/d/1tae3bzr62cZmOlF1AdXBuVX_IX0EVhro/view?usp=sharing)
+    - [Testing](https://drive.google.com/file/d/1VBQKJ-YShWmlzcEuSeNviBh5RO9ONUNq/view?usp=sharing)
+
 # Table of contents
 
 - [Rehoboam](#rehoboam)
